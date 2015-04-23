@@ -11,7 +11,30 @@ namespace MouseThingy
 {
     static class MouseInput
     {
-        private const float defaultMouseSpeed = 1.380555391f;
+
+        [StructLayout(LayoutKind.Sequential)]
+        struct POINT
+        {
+            public Int32 x;
+            public Int32 y;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        struct CURSORINFO
+        {
+            public Int32 cbSize;        // Specifies the size, in bytes, of the structure. 
+            // The caller must set this to Marshal.SizeOf(typeof(CURSORINFO)).
+            public Int32 flags;         // Specifies the cursor state. This parameter can be one of the following values:
+            //    0             The cursor is hidden.
+            //    CURSOR_SHOWING    The cursor is showing.
+            public IntPtr hCursor;          // Handle to the cursor. 
+            public POINT ptScreenPos;       // A POINT structure that receives the screen coordinates of the cursor. 
+        }
+
+        [DllImport("user32.dll")]
+        static extern bool GetCursorInfo(out CURSORINFO pci);
+
+        private const Int32 CURSOR_SHOWING = 0x00000001;
 
         [DllImport("user32.dll")]
         public static extern bool GetCursorPos(out Vector2 lpPoint);
@@ -23,11 +46,10 @@ namespace MouseThingy
 
         private static Vector2 oldMousePos;
 
-        private static Form1 _f;
+        private const float MAXIMUM_VERTICAL_VIEW_ANGLE = 1.492256522f;
 
-        public static void Start(Form1 f)
+        public static void Start()
         {
-            _f = f;
             GetCursorPos(out oldMousePos);
 
             mouseUpdate = new System.Threading.Timer(new TimerCallback(UpdateMouse), null, 0, 1);
@@ -35,64 +57,71 @@ namespace MouseThingy
 
         private static void UpdateMouse(object thing)
         {
+            if (!HaloMemoryWriter.IsForegrounded())
+                return;
+            CURSORINFO pci;
+            pci.cbSize = Marshal.SizeOf(typeof(CURSORINFO));
+            GetCursorInfo(out pci);
+            if (pci.flags == 1)
+                return;
 
             Vector2 newMousePos;
             GetCursorPos(out newMousePos);
             Vector2 mouseDelta = newMousePos - oldMousePos;
+
+            byte[] currentFovBytes = new byte[4];
+            HaloMemoryWriter.ReadFromMemory((uint)HaloMemoryWriter.BaseAddress + MouseThingy.CURRENT_FOV_OFFSET,currentFovBytes);
+            float currentFoV = BitConverter.ToSingle(currentFovBytes,0);
             
             // Update halo view angle here
             float hmul;
-            if (_f.GetHMul(out hmul))
+            if (MouseThingy.MainForm.GetHMul(out hmul))
             {
-                float h_delta = mouseDelta.X * hmul;
+                float horizontalDelta = mouseDelta.X * hmul * currentFoV / MouseThingy.SensitivityDivisor;
 
                 byte[] temp = new byte[4];
-                uint h_addr;
-                if (_f.GetHAddr(out h_addr))
+                uint horizontalAddress;
+                if (MouseThingy.MainForm.GetHAddr(out horizontalAddress))
                 {
-                    HaloMemoryWriter.ReadFromMemory(h_addr, temp);
-                    float h_prev = BitConverter.ToSingle(temp, 0);
-                    h_prev -= h_delta;
-                    h_prev = h_prev % (float)(2 * Math.PI);
-                    temp = BitConverter.GetBytes(h_prev);
-                    HaloMemoryWriter.WriteToMemory(h_addr, temp);
+                    HaloMemoryWriter.ReadFromMemory(horizontalAddress, temp);
+                    float horizontalPrevious = BitConverter.ToSingle(temp, 0);
+                    horizontalPrevious -= horizontalDelta;
+                    horizontalPrevious = horizontalPrevious % (float)(2 * Math.PI);
+                    temp = BitConverter.GetBytes(horizontalPrevious);
+                    HaloMemoryWriter.WriteToMemory(horizontalAddress, temp);
                 }
             }
 
             float vmul;
-            if (_f.GetVMul(out vmul))
+            if (MouseThingy.MainForm.GetVMul(out vmul))
             {
-                float v_delta = mouseDelta.Y * -vmul;
+                float verticalDelta = mouseDelta.Y * -vmul * currentFoV / MouseThingy.SensitivityDivisor;
 
                 byte[] temp = new byte[4];
-                uint v_addr;
-                if (_f.GetVAddr(out v_addr))
+                uint verticalAddress;
+                if (MouseThingy.MainForm.GetVAddr(out verticalAddress))
                 {
-                    HaloMemoryWriter.ReadFromMemory(v_addr, temp);
-                    float v_prev = BitConverter.ToSingle(temp, 0);
-                    v_prev += v_delta;
-                    v_prev = (float)(((v_prev + (Math.PI / 2)) % Math.PI) - (Math.PI / 2));
-                    temp = BitConverter.GetBytes(v_prev);
-                    HaloMemoryWriter.WriteToMemory(v_addr, temp);
+                    HaloMemoryWriter.ReadFromMemory(verticalAddress, temp);
+                    float verticalPrevious = BitConverter.ToSingle(temp, 0);
+                    verticalPrevious += verticalDelta;
+                    if (verticalPrevious > MAXIMUM_VERTICAL_VIEW_ANGLE)
+                    {
+                        verticalPrevious = MAXIMUM_VERTICAL_VIEW_ANGLE;
+                    }
+                    else if (verticalPrevious < -MAXIMUM_VERTICAL_VIEW_ANGLE)
+                    {
+                        verticalPrevious = -MAXIMUM_VERTICAL_VIEW_ANGLE;
+                    }
+                    verticalPrevious = (float)(((verticalPrevious + (Math.PI / 2)) % Math.PI) - (Math.PI / 2));
+                    temp = BitConverter.GetBytes(verticalPrevious);
+                    HaloMemoryWriter.WriteToMemory(verticalAddress, temp);
                 }
             }
 
-            oldMousePos = newMousePos;
-
-            // Center cursor if not minimized
-            if (!HaloMemoryWriter.IsWindowMinimized())
-                SetCursorPos(Screen.PrimaryScreen.Bounds.Width / 2, Screen.PrimaryScreen.Bounds.Height / 2);
-
-            oldMousePos = new Vector2(Screen.PrimaryScreen.Bounds.Width / 2, Screen.PrimaryScreen.Bounds.Height / 2);
-
-            uint fovAddr;
-            if (_f.GetFovAddr(out fovAddr))
-            {
-                byte[] fovdata = new byte[4];
-                HaloMemoryWriter.ReadFromMemory(fovAddr, fovdata);
-                float fov = BitConverter.ToSingle(fovdata, 0);
-                _f.SetFovText(fov);
-            }
+            // Center Cursor on same monitor as process
+            Screen activeProcessScreen = Screen.FromHandle(HaloMemoryWriter.SelectedProcess.MainWindowHandle);
+            oldMousePos = new Vector2((activeProcessScreen.Bounds.Width / 2) + activeProcessScreen.Bounds.X, (activeProcessScreen.Bounds.Height / 2) + activeProcessScreen.Bounds.Y);
+            SetCursorPos(oldMousePos.X, oldMousePos.Y);
         }
     }
 
