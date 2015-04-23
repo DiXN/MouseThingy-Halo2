@@ -36,6 +36,7 @@ namespace MouseThingy
             float targetRadians = (float)((double)numFoV.Value * Math.PI / 180);
 
             HaloMemoryWriter.WriteToMemory((uint)HaloMemoryWriter.BaseAddress + MouseThingy.FOV_MULTIPLIER_OFFSET, BitConverter.GetBytes(targetRadians / defaultRadians));
+            HaloMemoryWriter.WriteToMemory((uint)HaloMemoryWriter.BaseAddress + MouseThingy.FOV_VEHICLE_MULTIPLIER_OFFSET, BitConverter.GetBytes(targetRadians / defaultRadians));
         }
 
         private void bnUpdate_Click(object sender, EventArgs e)
