@@ -30,6 +30,8 @@ namespace MouseThingy
         public const uint FOV_MULTIPLIER_OFFSET = 4315524;
         public const uint FOV_VEHICLE_MULTIPLIER_OFFSET = 4274048;
         public const uint CURRENT_FOV_OFFSET = 4883752;
+        public const uint CROSSHAIR_OFFSET_POINTER = 0x47CD54;
+        public const uint CROSSHAIR_OFFSET_POINTER_OFFSET = 0x3dc00;
 
         private static float sensitivityDivisor = 4000;
 

@@ -122,6 +122,9 @@ namespace MouseThingy
             Screen activeProcessScreen = Screen.FromHandle(HaloMemoryWriter.SelectedProcess.MainWindowHandle);
             oldMousePos = new Vector2((activeProcessScreen.Bounds.Width / 2) + activeProcessScreen.Bounds.X, (activeProcessScreen.Bounds.Height / 2) + activeProcessScreen.Bounds.Y);
             SetCursorPos(oldMousePos.X, oldMousePos.Y);
+
+           // MouseThingy.MainForm.writeFOVToMemory();
+            MouseThingy.MainForm.writeCrosshairOffsetToMemory();
         }
     }
 

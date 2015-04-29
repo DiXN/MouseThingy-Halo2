@@ -19,25 +19,35 @@ namespace MouseThingy
             MouseThingy.MainForm = this;
             numFoV.ValueChanged += numFoV_ValueChanged;
             numViewOffset.ValueChanged += numViewOffset_ValueChanged;
-            numViewOffset.Enabled = false;
+            //numViewOffset.Enabled = false;
         }
 
-        void numViewOffset_ValueChanged(object sender, EventArgs e)
+        public void writeCrosshairOffsetToMemory()
         {
-            if (MouseThingy.ViewOffsetAddress != 0)
-            {
-                HaloMemoryWriter.WriteToMemory(MouseThingy.ViewOffsetAddress, BitConverter.GetBytes((float)numViewOffset.Value));
-            }
+            uint crosshairOffsetAddress = (uint)HaloMemoryWriter.BaseAddress.ToInt32() + MouseThingy.CROSSHAIR_OFFSET_POINTER;
+            byte[] crosshairOffsetData = new byte[4];
+            HaloMemoryWriter.ReadFromMemory(crosshairOffsetAddress, crosshairOffsetData);
+            HaloMemoryWriter.WriteToMemory((uint)((uint)(BitConverter.ToInt32(crosshairOffsetData, 0)) + MouseThingy.CROSSHAIR_OFFSET_POINTER_OFFSET), BitConverter.GetBytes((float)numViewOffset.Value));
         }
 
-        void numFoV_ValueChanged(object sender, EventArgs e)
+        public void writeFOVToMemory()
         {
-            float defaultRadians = (float)(70  * Math.PI / 180);
+            float defaultRadians = (float)(70 * Math.PI / 180);
             float targetRadians = (float)((double)numFoV.Value * Math.PI / 180);
 
             HaloMemoryWriter.WriteToMemory((uint)HaloMemoryWriter.BaseAddress + MouseThingy.FOV_MULTIPLIER_OFFSET, BitConverter.GetBytes(targetRadians / defaultRadians));
             HaloMemoryWriter.WriteToMemory((uint)HaloMemoryWriter.BaseAddress + MouseThingy.FOV_VEHICLE_MULTIPLIER_OFFSET, BitConverter.GetBytes(targetRadians / defaultRadians));
         }
+
+        void numViewOffset_ValueChanged(object sender, EventArgs e)
+        {
+            writeCrosshairOffsetToMemory();
+            }
+
+        void numFoV_ValueChanged(object sender, EventArgs e)
+        {
+            writeFOVToMemory();
+            }
 
         private void bnUpdate_Click(object sender, EventArgs e)
         {
@@ -80,23 +90,22 @@ namespace MouseThingy
         private void btnActivate_Click(object sender, EventArgs e)
         {
             MouseInput.Start();
-            byte[] fovData = new byte[4];
-            HaloMemoryWriter.ReadFromMemory(5211316, fovData);
-
-            float fovRadians = (float)((double)numFoV.Value * Math.PI / 180);
-            HaloMemoryWriter.WriteToMemory((uint)HaloMemoryWriter.BaseAddress.ToInt32() + MouseThingy.CURRENT_FOV_OFFSET, BitConverter.GetBytes(fovRadians));
-
-            uint viewOffsetAddress = 0;
-            if (HaloMemoryWriter.Rummage(0x20000000, 0x50000000, "CD CC 4C 3F 00 00 00 40 00 00 80 3F 66 66 66 3F", out viewOffsetAddress))
+            writeFOVToMemory();
+            writeCrosshairOffsetToMemory();
+            barRummageProgress.Value = barRummageProgress.Maximum;
+            //numViewOffset.Enabled = true;
+            
+           /* uint viewOffsetAddress = 0;
+            * if (HaloMemoryWriter.Rummage(0x20000000, 0x50000000, "CD CC 4C 3F 00 00 00 40 00 00 80 3F 66 66 66 3F", out viewOffsetAddress))
             {
                 MouseThingy.ViewOffsetAddress = viewOffsetAddress-8;
                 HaloMemoryWriter.WriteToMemory(MouseThingy.ViewOffsetAddress, BitConverter.GetBytes((float)numViewOffset.Value ));
                 numViewOffset.Enabled = true;
             }
-            else
+            else 
             {
                 numViewOffset.Enabled = false;
-            }
+            } */
         }
     }
 }

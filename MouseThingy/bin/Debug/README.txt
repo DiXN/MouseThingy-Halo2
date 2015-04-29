@@ -17,6 +17,8 @@ HOW TO USE
 
 the sensitivity at 90 FoV should be almost exactly equal to the sensitivity of any Source Engine game (team fortress 2, counter strike global offensive, etc) so use that as a baseline.
 
+and a final warning - you may need to reactivate on map change. if your crosshair or fov resets, just hit the activate button again, and you should be good to go.
+
 ----------
 
 at this point, you're finished, and you should have /much better/ aiming input on Halo 2 Vista. the program also includes Field-of-View and crosshair offset adjustment, in case you prefer to have a wider view, or a centered crosshair.
