@@ -28,31 +28,33 @@ namespace MouseThingy
         private static extern bool WriteProcessMemory(IntPtr hProcess, uint lpBaseAddress, byte[] lpBuffer, int nSize, IntPtr lpNumberOfBytesWritten);
 
         private static Process selectedProcess;
-
         public static Process SelectedProcess
         {
             get { return HaloMemoryWriter.selectedProcess; }
         }
-        private static IntPtr processHandle;
 
+        private static IntPtr processHandle;
         public static IntPtr ProcessHandle
         {
             get { return HaloMemoryWriter.processHandle; }
         }
-        private static bool connected = false;
 
+        private static bool connected = false;
         public static bool Connected
         {
             get { return HaloMemoryWriter.connected; }
         }
 
         private static IntPtr baseAddress;
-
         public static IntPtr BaseAddress
         {
             get { return baseAddress; }
         }
 
+        /// <summary>
+        /// Returns a list of process names.
+        /// </summary>
+        /// <returns>A list of process names</returns>
         public static List<string> GetProcessNames()
         {
             List<string> names = new List<string>();
@@ -66,6 +68,11 @@ namespace MouseThingy
             return names;
         }
 
+        /// <summary>
+        /// Attempts to connect to a process with a given name.
+        /// </summary>
+        /// <param name="name">The name of the process</param>
+        /// <returns>True if the connection was successful, false if not</returns>
         public static bool TryConnectToProcess(string name)
         {
             Process[] processes = Process.GetProcessesByName(name);
@@ -80,6 +87,12 @@ namespace MouseThingy
             return true;
         }
 
+        /// <summary>
+        /// Writes a byte array to a spot in the currently selected processes memory.
+        /// </summary>
+        /// <param name="memoryAddress">The address to write to</param>
+        /// <param name="data">The byte array to write</param>
+        /// <returns>True upon success, false upon failure</returns>
         public static bool WriteToMemory(uint memoryAddress, byte[] data)
         {
             if (!connected)
@@ -89,6 +102,12 @@ namespace MouseThingy
             return WriteProcessMemory(processHandle, memoryAddress, data, data.Length, new IntPtr(bytesWritten));
         }
 
+        /// <summary>
+        /// Reads a processes memory.
+        /// </summary>
+        /// <param name="memoryAddress">The memory address to read</param>
+        /// <param name="data">The byte array to fill</param>
+        /// <returns></returns>
         public static bool ReadFromMemory(uint memoryAddress, [Out] byte[] data)
         {
             if (!connected)
@@ -98,12 +117,42 @@ namespace MouseThingy
             return ReadProcessMemory(processHandle, memoryAddress, data, data.Length, new IntPtr(bytesRead));
         }
 
+        /// <summary>
+        /// Reads a processes memory.
+        /// </summary>
+        /// <param name="memoryAddress">The memory address to read</param>
+        /// <param name="length">How many bytes to read</param>
+        /// <returns>A byte array returning the bytes, null on fail</returns>
+        public static byte[] ReadFromMemory(uint memoryAddress, uint length)
+        {
+            byte[] result = null;
+            if (!connected)
+                return result;
+
+            result = new byte[length];
+            int bytesRead = 0;
+            ReadProcessMemory(processHandle, memoryAddress, result, result.Length, new IntPtr(bytesRead));
+            return result;
+        }
+
+        /// <summary>
+        /// Checks if the selected process is the foreground window.
+        /// </summary>
+        /// <returns>True if it is, false if not</returns>
         public static bool IsForegrounded()
         {
             IntPtr foregrounded = GetForegroundWindow();
             return foregrounded == selectedProcess.MainWindowHandle;
         }
 
+        /// <summary>
+        /// Runs through a processes memory in search of a particular array of bytes.
+        /// </summary>
+        /// <param name="start">The minimum memory boundary to search</param>
+        /// <param name="end">The maximum memory boundary to search</param>
+        /// <param name="bytes">The array of bytes to search for</param>
+        /// <param name="address">The address that is returned when found</param>
+        /// <returns></returns>
         public static bool Rummage(uint start, uint end, string bytes, out uint address)
         {
             uint bucketSize = 2048;
@@ -141,7 +190,7 @@ namespace MouseThingy
                 byte[] haypile = new byte[fovSearchBytes.Length];
                 ReadProcessMemory(processHandle, i, haypile, haypile.Length, bytesRead);
 
-                MouseThingy.RummageProgress = ((float)(i - start) / (end - fovSearchBytes.Length - start));
+                //MouseThingy.MainForm.barRummageProgress.Value = (int)(((float)(i - start) / (end - fovSearchBytes.Length - start))*100);
 
                 int matched = 0;
                 for (uint j = 0; j < fovSearchBytes.Length; j++)
@@ -164,7 +213,6 @@ namespace MouseThingy
                 if (found)
                 {
                     address = searchIndex;
-                    MouseThingy.RummageProgress = 1;
                     return true;
                 }
             }
@@ -172,7 +220,11 @@ namespace MouseThingy
             return false;
         }
 
-        // Space separated hex values
+        /// <summary>
+        /// Converts a space separated hex value string to a byte array.
+        /// </summary>
+        /// <param name="hexString">The space separated hex string to convert</param>
+        /// <returns>A byte array representative of the hex string</returns>
         public static byte[] hexStringToByteArray( string hexString )
         {
             string[] splitHex = hexString.Split(' ');

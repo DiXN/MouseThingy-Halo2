@@ -12,53 +12,80 @@ namespace MouseThingy
 {
     public partial class frmMouseThingy : Form
     {
+
         public frmMouseThingy()
         {
+            SuspendLayout();
             InitializeComponent();
             UpdateProcesses();
             MouseThingy.MainForm = this;
             numFoV.ValueChanged += numFoV_ValueChanged;
             numViewOffset.ValueChanged += numViewOffset_ValueChanged;
-            //numViewOffset.Enabled = false;
+            ResumeLayout();
         }
 
+        /// <summary>
+        /// Actually performs the write to crosshair offset memory.
+        /// </summary>
         public void writeCrosshairOffsetToMemory()
         {
+            // Read the address the pointer is pointing to
             uint crosshairOffsetAddress = (uint)HaloMemoryWriter.BaseAddress.ToInt32() + MouseThingy.CROSSHAIR_OFFSET_POINTER;
             byte[] crosshairOffsetData = new byte[4];
+            // Offset that address by the crosshair offset
             HaloMemoryWriter.ReadFromMemory(crosshairOffsetAddress, crosshairOffsetData);
+            // Write the current crosshair offset to that memory address
             HaloMemoryWriter.WriteToMemory((uint)((uint)(BitConverter.ToInt32(crosshairOffsetData, 0)) + MouseThingy.CROSSHAIR_OFFSET_POINTER_OFFSET), BitConverter.GetBytes((float)numViewOffset.Value));
         }
 
+        /// <summary>
+        /// Actually performs the write to fov memory.
+        /// </summary>
         public void writeFOVToMemory()
         {
-            float defaultRadians = (float)(70 * Math.PI / 180);
+            // Find the proper value from degrees
             float targetRadians = (float)((double)numFoV.Value * Math.PI / 180);
 
-            HaloMemoryWriter.WriteToMemory((uint)HaloMemoryWriter.BaseAddress + MouseThingy.FOV_MULTIPLIER_OFFSET, BitConverter.GetBytes(targetRadians / defaultRadians));
-            HaloMemoryWriter.WriteToMemory((uint)HaloMemoryWriter.BaseAddress + MouseThingy.FOV_VEHICLE_MULTIPLIER_OFFSET, BitConverter.GetBytes(targetRadians / defaultRadians));
+            // Write the value to the vehicle and player FOV's
+            HaloMemoryWriter.WriteToMemory((uint)HaloMemoryWriter.BaseAddress + MouseThingy.FOV_MULTIPLIER_OFFSET, BitConverter.GetBytes(targetRadians / MouseThingy.DEFAULT_RADIANS));
+            HaloMemoryWriter.WriteToMemory((uint)HaloMemoryWriter.BaseAddress + MouseThingy.FOV_VEHICLE_MULTIPLIER_OFFSET, BitConverter.GetBytes(targetRadians / MouseThingy.DEFAULT_RADIANS));
         }
 
         void numViewOffset_ValueChanged(object sender, EventArgs e)
         {
             writeCrosshairOffsetToMemory();
-            }
+        }
 
         void numFoV_ValueChanged(object sender, EventArgs e)
         {
             writeFOVToMemory();
-            }
+        }
 
         private void bnUpdate_Click(object sender, EventArgs e)
         {
             UpdateProcesses();
         }
 
+        /// <summary>
+        /// Gets all the processes and adds them to the dropdown list
+        /// </summary>
         private void UpdateProcesses()
         {
+            lstProcessList.SuspendLayout();
             lstProcessList.Items.Clear();
-
-            HaloMemoryWriter.GetProcessNames().ForEach((string name) => lstProcessList.Items.Add(name));
+            List<string> processNames = HaloMemoryWriter.GetProcessNames();
+            for (int i = 0; i < processNames.Count; i++ )
+            {
+                lstProcessList.Items.Add(processNames[i]);
+                if (processNames[i] == "halo2")
+                {
+                    if (HaloMemoryWriter.TryConnectToProcess(processNames[i]))
+                    {
+                        lstProcessList.SelectedIndex = i;
+                    }
+                }
+            }
+            lstProcessList.ResumeLayout();
         }
 
         private void processList_SelectionChangeCommitted(object sender, System.EventArgs e)
@@ -67,9 +94,9 @@ namespace MouseThingy
                 HaloMemoryWriter.TryConnectToProcess(lstProcessList.SelectedItem.ToString());
         }
 
-        public bool GetHMul(out float hmul)
+        public float GetHMul()
         {
-            return float.TryParse(txtHorizontalSensitivity.Text, out hmul);
+            return (float)numHorizontalSensitivity.Value;
         }
 
         public bool GetHAddr(out uint addr)
@@ -77,9 +104,9 @@ namespace MouseThingy
             return uint.TryParse(txtHorizontalViewAngleAddress.Text, out addr);
         }
 
-        public bool GetVMul(out float hmul)
+        public float GetVMul()
         {
-            return float.TryParse(txtVerticalSensitivity.Text, out hmul);
+            return (float)numVerticalSensitivity.Value;
         }
 
         public bool GetVAddr(out uint addr)
@@ -93,19 +120,7 @@ namespace MouseThingy
             writeFOVToMemory();
             writeCrosshairOffsetToMemory();
             barRummageProgress.Value = barRummageProgress.Maximum;
-            //numViewOffset.Enabled = true;
-            
-           /* uint viewOffsetAddress = 0;
-            * if (HaloMemoryWriter.Rummage(0x20000000, 0x50000000, "CD CC 4C 3F 00 00 00 40 00 00 80 3F 66 66 66 3F", out viewOffsetAddress))
-            {
-                MouseThingy.ViewOffsetAddress = viewOffsetAddress-8;
-                HaloMemoryWriter.WriteToMemory(MouseThingy.ViewOffsetAddress, BitConverter.GetBytes((float)numViewOffset.Value ));
-                numViewOffset.Enabled = true;
-            }
-            else 
-            {
-                numViewOffset.Enabled = false;
-            } */
+            lblStatus.Text = "Activated";
         }
     }
 }

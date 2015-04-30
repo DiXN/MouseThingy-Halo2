@@ -40,13 +40,12 @@ namespace MouseThingy
         public static extern bool GetCursorPos(out Vector2 lpPoint);
 
         [DllImport("user32.dll")]
-        public static extern bool SetCursorPos(int X,int Y);
+        public static extern bool SetCursorPos(int X, int Y);
 
         private static System.Threading.Timer mouseUpdate;
 
         private static Vector2 oldMousePos;
 
-        private const float MAXIMUM_VERTICAL_VIEW_ANGLE = 1.492256522f;
 
         public static void Start()
         {
@@ -57,11 +56,14 @@ namespace MouseThingy
 
         private static void UpdateMouse(object thing)
         {
+            // If the process isn't focused, don't bother updating the mouse
             if (!HaloMemoryWriter.IsForegrounded())
                 return;
+
             CURSORINFO pci;
             pci.cbSize = Marshal.SizeOf(typeof(CURSORINFO));
             GetCursorInfo(out pci);
+            // If the cursor is visible, we don't want to update the position or center the mouse, so exit
             if (pci.flags == 1)
                 return;
 
@@ -70,52 +72,49 @@ namespace MouseThingy
             Vector2 mouseDelta = newMousePos - oldMousePos;
 
             byte[] currentFovBytes = new byte[4];
-            HaloMemoryWriter.ReadFromMemory((uint)HaloMemoryWriter.BaseAddress + MouseThingy.CURRENT_FOV_OFFSET,currentFovBytes);
-            float currentFoV = BitConverter.ToSingle(currentFovBytes,0);
-            
-            // Update halo view angle here
-            float hmul;
-            if (MouseThingy.MainForm.GetHMul(out hmul))
-            {
-                float horizontalDelta = mouseDelta.X * hmul * currentFoV / MouseThingy.SensitivityDivisor;
+            HaloMemoryWriter.ReadFromMemory((uint)HaloMemoryWriter.BaseAddress + MouseThingy.CURRENT_FOV_OFFSET, currentFovBytes);
+            float currentFoV = BitConverter.ToSingle(currentFovBytes, 0);
 
+            // Update halo view angle here
+            float horizontalSensitivity = MouseThingy.MainForm.GetHMul();
+            // Calculate the new horizontal delta based
+            float horizontalDelta = mouseDelta.X * horizontalSensitivity * currentFoV / MouseThingy.SensitivityDivisor;
+
+            uint horizontalAddress;
+            if (MouseThingy.MainForm.GetHAddr(out horizontalAddress))
+            {
                 byte[] temp = new byte[4];
-                uint horizontalAddress;
-                if (MouseThingy.MainForm.GetHAddr(out horizontalAddress))
-                {
-                    HaloMemoryWriter.ReadFromMemory(horizontalAddress, temp);
-                    float horizontalPrevious = BitConverter.ToSingle(temp, 0);
-                    horizontalPrevious -= horizontalDelta;
-                    horizontalPrevious = horizontalPrevious % (float)(2 * Math.PI);
-                    temp = BitConverter.GetBytes(horizontalPrevious);
-                    HaloMemoryWriter.WriteToMemory(horizontalAddress, temp);
-                }
+                HaloMemoryWriter.ReadFromMemory(horizontalAddress, temp);
+                float horizontalPrevious = BitConverter.ToSingle(temp, 0);
+                horizontalPrevious -= horizontalDelta;
+                horizontalPrevious = horizontalPrevious % (float)(2 * Math.PI);
+                temp = BitConverter.GetBytes(horizontalPrevious);
+                HaloMemoryWriter.WriteToMemory(horizontalAddress, temp);
             }
 
-            float vmul;
-            if (MouseThingy.MainForm.GetVMul(out vmul))
-            {
-                float verticalDelta = mouseDelta.Y * -vmul * currentFoV / MouseThingy.SensitivityDivisor;
+            float verticalSensitivity = MouseThingy.MainForm.GetVMul();
+            float verticalDelta = mouseDelta.Y * -verticalSensitivity * currentFoV / MouseThingy.SensitivityDivisor;
 
+            uint verticalAddress;
+            if (MouseThingy.MainForm.GetVAddr(out verticalAddress))
+            {
                 byte[] temp = new byte[4];
-                uint verticalAddress;
-                if (MouseThingy.MainForm.GetVAddr(out verticalAddress))
+                HaloMemoryWriter.ReadFromMemory(verticalAddress, temp);
+                float verticalPrevious = BitConverter.ToSingle(temp, 0);
+                verticalPrevious += verticalDelta;
+                // Maximum view angle fix
+                // This works because we know based on the delta if we're going to wrap around so we never let that happen
+                if (verticalPrevious > MouseThingy.MAXIMUM_VERTICAL_VIEW_ANGLE)
                 {
-                    HaloMemoryWriter.ReadFromMemory(verticalAddress, temp);
-                    float verticalPrevious = BitConverter.ToSingle(temp, 0);
-                    verticalPrevious += verticalDelta;
-                    if (verticalPrevious > MAXIMUM_VERTICAL_VIEW_ANGLE)
-                    {
-                        verticalPrevious = MAXIMUM_VERTICAL_VIEW_ANGLE;
-                    }
-                    else if (verticalPrevious < -MAXIMUM_VERTICAL_VIEW_ANGLE)
-                    {
-                        verticalPrevious = -MAXIMUM_VERTICAL_VIEW_ANGLE;
-                    }
-                    verticalPrevious = (float)(((verticalPrevious + (Math.PI / 2)) % Math.PI) - (Math.PI / 2));
-                    temp = BitConverter.GetBytes(verticalPrevious);
-                    HaloMemoryWriter.WriteToMemory(verticalAddress, temp);
+                    verticalPrevious = MouseThingy.MAXIMUM_VERTICAL_VIEW_ANGLE;
                 }
+                else if (verticalPrevious < -MouseThingy.MAXIMUM_VERTICAL_VIEW_ANGLE)
+                {
+                    verticalPrevious = -MouseThingy.MAXIMUM_VERTICAL_VIEW_ANGLE;
+                }
+                verticalPrevious = (float)(((verticalPrevious + (Math.PI / 2)) % Math.PI) - (Math.PI / 2));
+                temp = BitConverter.GetBytes(verticalPrevious);
+                HaloMemoryWriter.WriteToMemory(verticalAddress, temp);
             }
 
             // Center Cursor on same monitor as process
@@ -123,7 +122,10 @@ namespace MouseThingy
             oldMousePos = new Vector2((activeProcessScreen.Bounds.Width / 2) + activeProcessScreen.Bounds.X, (activeProcessScreen.Bounds.Height / 2) + activeProcessScreen.Bounds.Y);
             SetCursorPos(oldMousePos.X, oldMousePos.Y);
 
-           // MouseThingy.MainForm.writeFOVToMemory();
+            // MouseThingy.MainForm.writeFOVToMemory();
+
+            // Write the crosshair offset to memory every frame
+            // TODO: This does not need to happen every frame. In fact, this should happen very rarely.
             MouseThingy.MainForm.writeCrosshairOffsetToMemory();
         }
     }
