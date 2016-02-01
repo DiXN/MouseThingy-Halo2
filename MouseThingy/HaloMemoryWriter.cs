@@ -46,6 +46,7 @@ namespace MouseThingy
             get { return HaloMemoryWriter.connected; }
         }
 
+
         private static IntPtr baseAddress;
 
         public static IntPtr BaseAddress
@@ -68,7 +69,7 @@ namespace MouseThingy
 
         public static bool TryConnectToProcess(string name)
         {
-            Process[] processes = Process.GetProcessesByName(name);
+            Process[] processes = Process.GetProcessesByName("halo2");
 
             if (processes.Length == 0)
                 return false;
@@ -76,7 +77,11 @@ namespace MouseThingy
             selectedProcess = processes[0];
             processHandle = OpenProcess(PROCESS_WM_READ | PROCESS_VM_WRITE | PROCESS_VM_OPERATION, false, selectedProcess.Id);
             connected = true;
-            baseAddress = selectedProcess.MainModule.BaseAddress;
+            try
+            {
+                baseAddress = selectedProcess.MainModule.BaseAddress;
+            }
+            catch { }
             return true;
         }
 
@@ -100,6 +105,7 @@ namespace MouseThingy
 
         public static bool IsForegrounded()
         {
+            
             IntPtr foregrounded = GetForegroundWindow();
             return foregrounded == selectedProcess.MainWindowHandle;
         }

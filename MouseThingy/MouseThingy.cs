@@ -23,7 +23,6 @@ namespace MouseThingy
             get { return MouseThingy.rummageProgress; }
             set {
                 MouseThingy.rummageProgress = value;
-                MainForm.barRummageProgress.Value = (int)(value*100);
             }
         }
 

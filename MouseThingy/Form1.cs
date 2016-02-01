@@ -7,19 +7,56 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+using System.Media;
+using System.Threading;
+using System.Reflection;
 
 namespace MouseThingy
 {
     public partial class frmMouseThingy : Form
     {
+        [DllImport("user32.dll")]
+        public static extern bool RegisterHotKey(IntPtr hWnd,
+          int id, int fsModifiers, int vlc);
+        [DllImport("user32.dll")]
+        public static extern bool UnregisterHotKey(IntPtr hWnd, int id);
         public frmMouseThingy()
         {
+            AppDomain.CurrentDomain.AssemblyResolve += (sender, args) =>
+            {
+                string resourceName = new AssemblyName(args.Name).Name + ".dll";
+                string resource = Array.Find(this.GetType().Assembly.GetManifestResourceNames(), element => element.EndsWith(resourceName));
+
+                using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resource))
+                {
+                    Byte[] assemblyData = new Byte[stream.Length];
+                    stream.Read(assemblyData, 0, assemblyData.Length);
+                    return Assembly.Load(assemblyData);
+                }
+            };
             InitializeComponent();
-            UpdateProcesses();
             MouseThingy.MainForm = this;
             numFoV.ValueChanged += numFoV_ValueChanged;
             numViewOffset.ValueChanged += numViewOffset_ValueChanged;
             //numViewOffset.Enabled = false;
+            frmMouseThingy.RegisterHotKey(this.Handle, this.GetType().GetHashCode(), 0, (int)0x21);
+        }
+
+        protected override void WndProc(ref Message m)
+        {
+            if (m.Msg == 0x0312)
+            {
+                if (Process.GetProcessesByName("halo2").Length > 0)
+                {
+                    HaloMemoryWriter.TryConnectToProcess(Process.GetProcessesByName("halo2").ToString());
+                    MouseInput.Start();
+                    writeFOVToMemory();
+                    writeCrosshairOffsetToMemory();
+                }
+            }
+            base.WndProc(ref m);
         }
 
         public void writeCrosshairOffsetToMemory()
@@ -49,23 +86,6 @@ namespace MouseThingy
             writeFOVToMemory();
             }
 
-        private void bnUpdate_Click(object sender, EventArgs e)
-        {
-            UpdateProcesses();
-        }
-
-        private void UpdateProcesses()
-        {
-            lstProcessList.Items.Clear();
-
-            HaloMemoryWriter.GetProcessNames().ForEach((string name) => lstProcessList.Items.Add(name));
-        }
-
-        private void processList_SelectionChangeCommitted(object sender, System.EventArgs e)
-        {
-            if (lstProcessList.SelectedItem != null)
-                HaloMemoryWriter.TryConnectToProcess(lstProcessList.SelectedItem.ToString());
-        }
 
         public bool GetHMul(out float hmul)
         {
@@ -87,25 +107,32 @@ namespace MouseThingy
             return uint.TryParse(txtVerticalViewAngleAddress.Text, out addr);
         }
 
-        private void btnActivate_Click(object sender, EventArgs e)
+        private void frmMouseThingy_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void MemoryWriteTimer_Tick(object sender, EventArgs e)
+        {
+            if (Process.GetProcessesByName("halo2").Length > 0)
+            {
+                ActivateBtn.Enabled = true;
+                StatusLabel.ForeColor = Color.Green;
+                StatusLabel.Text = "Halo 2 process detected.";
+            }
+            else
+            {
+                StatusLabel.ForeColor = Color.Red;
+                StatusLabel.Text = "Halo 2 process not detected..";
+                ActivateBtn.Enabled = false;
+            }
+        }
+
+        private void ActivateBtn_Click(object sender, EventArgs e)
         {
             MouseInput.Start();
             writeFOVToMemory();
             writeCrosshairOffsetToMemory();
-            barRummageProgress.Value = barRummageProgress.Maximum;
-            //numViewOffset.Enabled = true;
-            
-           /* uint viewOffsetAddress = 0;
-            * if (HaloMemoryWriter.Rummage(0x20000000, 0x50000000, "CD CC 4C 3F 00 00 00 40 00 00 80 3F 66 66 66 3F", out viewOffsetAddress))
-            {
-                MouseThingy.ViewOffsetAddress = viewOffsetAddress-8;
-                HaloMemoryWriter.WriteToMemory(MouseThingy.ViewOffsetAddress, BitConverter.GetBytes((float)numViewOffset.Value ));
-                numViewOffset.Enabled = true;
-            }
-            else 
-            {
-                numViewOffset.Enabled = false;
-            } */
         }
     }
 }
