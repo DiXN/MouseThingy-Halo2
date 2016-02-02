@@ -130,6 +130,7 @@ namespace MouseThingy
 
         private void ActivateBtn_Click(object sender, EventArgs e)
         {
+            HaloMemoryWriter.TryConnectToProcess(Process.GetProcessesByName("halo2").ToString());
             MouseInput.Start();
             writeFOVToMemory();
             writeCrosshairOffsetToMemory();
