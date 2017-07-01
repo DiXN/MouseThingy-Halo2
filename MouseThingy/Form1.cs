@@ -1,16 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
+using System.Text.RegularExpressions;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Media;
-using System.Threading;
 using System.Reflection;
 
 namespace MouseThingy
@@ -22,6 +15,9 @@ namespace MouseThingy
           int id, int fsModifiers, int vlc);
         [DllImport("user32.dll")]
         public static extern bool UnregisterHotKey(IntPtr hWnd, int id);
+
+        private static Regex regex = new Regex("^[0-9]+\\.[0-9]+?$");
+
         public frmMouseThingy()
         {
             AppDomain.CurrentDomain.AssemblyResolve += (sender, args) =>
@@ -36,11 +32,11 @@ namespace MouseThingy
                     return Assembly.Load(assemblyData);
                 }
             };
+
             InitializeComponent();
             MouseThingy.MainForm = this;
             numFoV.ValueChanged += numFoV_ValueChanged;
             numViewOffset.ValueChanged += numViewOffset_ValueChanged;
-            //numViewOffset.Enabled = false;
             frmMouseThingy.RegisterHotKey(this.Handle, this.GetType().GetHashCode(), 0, (int)0x21);
         }
 
@@ -56,6 +52,7 @@ namespace MouseThingy
                     writeCrosshairOffsetToMemory();
                 }
             }
+
             base.WndProc(ref m);
         }
 
@@ -79,17 +76,25 @@ namespace MouseThingy
         void numViewOffset_ValueChanged(object sender, EventArgs e)
         {
             writeCrosshairOffsetToMemory();
-            }
+        }
 
         void numFoV_ValueChanged(object sender, EventArgs e)
         {
             writeFOVToMemory();
-            }
+        }
 
-
-        public bool GetHMul(out float hmul)
+        public float GetHMul()
         {
-            return float.TryParse(txtHorizontalSensitivity.Text, out hmul);
+            if (regex.IsMatch(txtHorizontalSensitivity.Text))
+            {
+                string text = txtHorizontalSensitivity.Text;
+                Console.WriteLine(text);
+                return text.Length > 2 ? float.Parse(text) / (float)Math.Pow(10, text.Length - 2) : float.Parse(text);
+            }
+            else
+            {
+                return 2.2F;
+            }
         }
 
         public bool GetHAddr(out uint addr)
@@ -97,9 +102,17 @@ namespace MouseThingy
             return uint.TryParse(txtHorizontalViewAngleAddress.Text, out addr);
         }
 
-        public bool GetVMul(out float hmul)
+        public float GetVMul()
         {
-            return float.TryParse(txtVerticalSensitivity.Text, out hmul);
+            if (regex.IsMatch(txtHorizontalSensitivity.Text))
+            {
+                string text = txtVerticalSensitivity.Text;
+                return text.Length > 2 ? float.Parse(text) / (float)Math.Pow(10, text.Length - 2) : float.Parse(text);
+            }
+            else
+            {
+                return 2.2F;
+            }
         }
 
         public bool GetVAddr(out uint addr)
@@ -107,23 +120,18 @@ namespace MouseThingy
             return uint.TryParse(txtVerticalViewAngleAddress.Text, out addr);
         }
 
-        private void frmMouseThingy_Load(object sender, EventArgs e)
-        {
-
-        }
-
         private void MemoryWriteTimer_Tick(object sender, EventArgs e)
         {
             if (Process.GetProcessesByName("halo2").Length > 0)
             {
                 ActivateBtn.Enabled = true;
-                StatusLabel.ForeColor = Color.Green;
-                StatusLabel.Text = "Halo 2 process detected.";
+                statusPanel.BackColor = Color.Green;
+                statusLabel.Text = "Halo 2 process detected.";
             }
             else
             {
-                StatusLabel.ForeColor = Color.Red;
-                StatusLabel.Text = "Halo 2 process not detected..";
+                statusPanel.BackColor = Color.Red;
+                statusLabel.Text = "Halo 2 process not detected.";
                 ActivateBtn.Enabled = false;
             }
         }
