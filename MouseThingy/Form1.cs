@@ -46,7 +46,7 @@ namespace MouseThingy
             {
                 if (Process.GetProcessesByName("halo2").Length > 0)
                 {
-                    HaloMemoryWriter.TryConnectToProcess(Process.GetProcessesByName("halo2").ToString());
+                    HaloMemoryWriter.TryConnectToProcess();
                     MouseInput.Start();
                     writeFOVToMemory();
                     writeCrosshairOffsetToMemory();
@@ -61,7 +61,7 @@ namespace MouseThingy
             uint crosshairOffsetAddress = (uint)HaloMemoryWriter.BaseAddress.ToInt32() + MouseThingy.CROSSHAIR_OFFSET_POINTER;
             byte[] crosshairOffsetData = new byte[4];
             HaloMemoryWriter.ReadFromMemory(crosshairOffsetAddress, crosshairOffsetData);
-            HaloMemoryWriter.WriteToMemory((uint)((uint)(BitConverter.ToInt32(crosshairOffsetData, 0)) + MouseThingy.CROSSHAIR_OFFSET_POINTER_OFFSET), BitConverter.GetBytes((float)numViewOffset.Value));
+            HaloMemoryWriter.WriteToMemory(((uint)(BitConverter.ToInt32(crosshairOffsetData, 0)) + MouseThingy.CROSSHAIR_OFFSET_POINTER_OFFSET), BitConverter.GetBytes((float)numViewOffset.Value));
         }
 
         public void writeFOVToMemory()
@@ -83,17 +83,19 @@ namespace MouseThingy
             writeFOVToMemory();
         }
 
-        public float GetHMul()
+        public float HMul
         {
-            if (regex.IsMatch(txtHorizontalSensitivity.Text))
+            get
             {
-                string text = txtHorizontalSensitivity.Text;
-                Console.WriteLine(text);
-                return text.Length > 2 ? float.Parse(text) / (float)Math.Pow(10, text.Length - 2) : float.Parse(text);
-            }
-            else
-            {
-                return 2.2F;
+                if (regex.IsMatch(txtHorizontalSensitivity.Text))
+                {
+                    string text = txtHorizontalSensitivity.Text;
+                    return text.Length > 3 ? float.Parse(text) / (float)Math.Pow(10, text.Length - 3) : float.Parse(text);
+                }
+                else
+                {
+                    return 2.2F;
+                }
             }
         }
 
@@ -102,16 +104,18 @@ namespace MouseThingy
             return uint.TryParse(txtHorizontalViewAngleAddress.Text, out addr);
         }
 
-        public float GetVMul()
+        public float VMul
         {
-            if (regex.IsMatch(txtHorizontalSensitivity.Text))
-            {
-                string text = txtVerticalSensitivity.Text;
-                return text.Length > 2 ? float.Parse(text) / (float)Math.Pow(10, text.Length - 2) : float.Parse(text);
-            }
-            else
-            {
-                return 2.2F;
+            get {
+                if (regex.IsMatch(txtHorizontalSensitivity.Text))
+                {
+                    string text = txtVerticalSensitivity.Text;
+                    return text.Length > 3 ? float.Parse(text) / (float)Math.Pow(10, text.Length - 3) : float.Parse(text);
+                }
+                else
+                {
+                    return 2.2F;
+                }
             }
         }
 
@@ -127,6 +131,7 @@ namespace MouseThingy
                 ActivateBtn.Enabled = true;
                 statusPanel.BackColor = Color.Green;
                 statusLabel.Text = "Halo 2 process detected.";
+                activate();
             }
             else
             {
@@ -138,7 +143,12 @@ namespace MouseThingy
 
         private void ActivateBtn_Click(object sender, EventArgs e)
         {
-            HaloMemoryWriter.TryConnectToProcess(Process.GetProcessesByName("halo2").ToString());
+            activate();
+        }
+
+        private void activate()
+        {
+            HaloMemoryWriter.TryConnectToProcess();
             MouseInput.Start();
             writeFOVToMemory();
             writeCrosshairOffsetToMemory();

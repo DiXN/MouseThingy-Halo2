@@ -33,19 +33,20 @@ namespace MouseThingy
         {
             get { return HaloMemoryWriter.selectedProcess; }
         }
+
         private static IntPtr processHandle;
 
         public static IntPtr ProcessHandle
         {
             get { return HaloMemoryWriter.processHandle; }
         }
+
         private static bool connected = false;
 
         public static bool Connected
         {
             get { return HaloMemoryWriter.connected; }
         }
-
 
         private static IntPtr baseAddress;
 
@@ -54,20 +55,7 @@ namespace MouseThingy
             get { return baseAddress; }
         }
 
-        public static List<string> GetProcessNames()
-        {
-            List<string> names = new List<string>();
-
-            Process[] processes = Process.GetProcesses();
-            foreach (Process process in processes)
-            {
-                names.Add(process.ProcessName);
-            }
-
-            return names;
-        }
-
-        public static bool TryConnectToProcess(string name)
+        public static bool TryConnectToProcess()
         {
             Process[] processes = Process.GetProcessesByName("halo2");
 
@@ -77,11 +65,15 @@ namespace MouseThingy
             selectedProcess = processes[0];
             processHandle = OpenProcess(PROCESS_WM_READ | PROCESS_VM_WRITE | PROCESS_VM_OPERATION, false, selectedProcess.Id);
             connected = true;
+
             try
             {
                 baseAddress = selectedProcess.MainModule.BaseAddress;
             }
-            catch { }
+            catch (Exception) {
+                return false;
+            }
+
             return true;
         }
 
@@ -104,90 +96,8 @@ namespace MouseThingy
         }
 
         public static bool IsForegrounded()
-        {
-            
-            IntPtr foregrounded = GetForegroundWindow();
-            return foregrounded == selectedProcess.MainWindowHandle;
-        }
-
-        public static bool Rummage(uint start, uint end, string bytes, out uint address)
-        {
-            uint bucketSize = 2048;
-            uint length = end - start;
-
-            byte[] fovSearchBytes = hexStringToByteArray(bytes);
-
-            bool found = false;
-            uint searchIndex = 0;
-
-            for (uint i = start; i < end - fovSearchBytes.Length; i++)
-            {
-                IntPtr bytesRead = new IntPtr();
-
-                byte[] bucket = new byte[bucketSize];
-                ReadProcessMemory(processHandle, i, bucket, bucket.Length, bytesRead);
-
-                bool inBucket = false;
-
-                for (uint k = 0; k < bucket.Length; k++)
-                {
-                    if (bucket[k] == fovSearchBytes[0])
-                    {
-                        i += k;
-                        inBucket = true;
-                        break;
-                    }
-                }
-                if ( !inBucket )
-                {
-                    i += (uint)bucket.Length - 1;
-                    continue;
-                }
-
-                byte[] haypile = new byte[fovSearchBytes.Length];
-                ReadProcessMemory(processHandle, i, haypile, haypile.Length, bytesRead);
-
-                MouseThingy.RummageProgress = ((float)(i - start) / (end - fovSearchBytes.Length - start));
-
-                int matched = 0;
-                for (uint j = 0; j < fovSearchBytes.Length; j++)
-                {
-                    if (fovSearchBytes[j] != haypile[j])
-                    {
-                        break;
-                    }
-                    else
-                    {
-                        matched++;
-                    }
-                    if (matched == fovSearchBytes.Length - 1)
-                    {
-                        searchIndex = i;
-                        found = true;
-                        break;
-                    }
-                }
-                if (found)
-                {
-                    address = searchIndex;
-                    MouseThingy.RummageProgress = 1;
-                    return true;
-                }
-            }
-            address = 0;
-            return false;
-        }
-
-        // Space separated hex values
-        public static byte[] hexStringToByteArray( string hexString )
-        {
-            string[] splitHex = hexString.Split(' ');
-            byte[] convertedHex = new byte[splitHex.Length];
-            for ( int i = 0; i < splitHex.Length; i++ )
-            {
-                convertedHex[i] = (byte)Convert.ToInt32(splitHex[i], 16);
-            }
-            return convertedHex;
+        {     
+            return GetForegroundWindow() == selectedProcess.MainWindowHandle;
         }
     }
 }

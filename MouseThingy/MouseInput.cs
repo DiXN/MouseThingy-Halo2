@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Threading;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
@@ -51,7 +47,6 @@ namespace MouseThingy
         public static void Start()
         {
             GetCursorPos(out oldMousePos);
-
             mouseUpdate = new System.Threading.Timer(new TimerCallback(UpdateMouse), null, 0, 1);
         }
 
@@ -59,6 +54,7 @@ namespace MouseThingy
         {
             if (!HaloMemoryWriter.IsForegrounded())
                 return;
+
             CURSORINFO pci;
             pci.cbSize = Marshal.SizeOf(typeof(CURSORINFO));
             GetCursorInfo(out pci);
@@ -70,52 +66,43 @@ namespace MouseThingy
             Vector2 mouseDelta = newMousePos - oldMousePos;
 
             byte[] currentFovBytes = new byte[4];
-            HaloMemoryWriter.ReadFromMemory((uint)HaloMemoryWriter.BaseAddress + MouseThingy.CURRENT_FOV_OFFSET,currentFovBytes);
-            float currentFoV = BitConverter.ToSingle(currentFovBytes,0);
+            HaloMemoryWriter.ReadFromMemory((uint)HaloMemoryWriter.BaseAddress + MouseThingy.CURRENT_FOV_OFFSET, currentFovBytes);
+            float currentFoV = BitConverter.ToSingle(currentFovBytes, 0);
             
             // Update halo view angle here
-            float hmul;
-            if (MouseThingy.MainForm.GetHMul(out hmul))
-            {
-                float horizontalDelta = mouseDelta.X * hmul * currentFoV / MouseThingy.SensitivityDivisor;
+            float horizontalDelta = mouseDelta.X * MouseThingy.MainForm.HMul * currentFoV / MouseThingy.SensitivityDivisor;
+            float verticalDelta = mouseDelta.Y * -MouseThingy.MainForm.VMul * currentFoV / MouseThingy.SensitivityDivisor;
 
+            uint horizontalAddress;
+            if (MouseThingy.MainForm.GetHAddr(out horizontalAddress))
+            {
                 byte[] temp = new byte[4];
-                uint horizontalAddress;
-                if (MouseThingy.MainForm.GetHAddr(out horizontalAddress))
-                {
-                    HaloMemoryWriter.ReadFromMemory(horizontalAddress, temp);
-                    float horizontalPrevious = BitConverter.ToSingle(temp, 0);
-                    horizontalPrevious -= horizontalDelta;
-                    horizontalPrevious = horizontalPrevious % (float)(2 * Math.PI);
-                    temp = BitConverter.GetBytes(horizontalPrevious);
-                    HaloMemoryWriter.WriteToMemory(horizontalAddress, temp);
-                }
+                HaloMemoryWriter.ReadFromMemory(horizontalAddress, temp);
+                float horizontalPrevious = BitConverter.ToSingle(temp, 0);
+                horizontalPrevious -= horizontalDelta;
+                horizontalPrevious = horizontalPrevious % (float)(2 * Math.PI);
+                temp = BitConverter.GetBytes(horizontalPrevious);
+                HaloMemoryWriter.WriteToMemory(horizontalAddress, temp);
             }
 
-            float vmul;
-            if (MouseThingy.MainForm.GetVMul(out vmul))
+            uint verticalAddress;
+            if (MouseThingy.MainForm.GetVAddr(out verticalAddress))
             {
-                float verticalDelta = mouseDelta.Y * -vmul * currentFoV / MouseThingy.SensitivityDivisor;
-
                 byte[] temp = new byte[4];
-                uint verticalAddress;
-                if (MouseThingy.MainForm.GetVAddr(out verticalAddress))
+                HaloMemoryWriter.ReadFromMemory(verticalAddress, temp);
+                float verticalPrevious = BitConverter.ToSingle(temp, 0);
+                verticalPrevious += verticalDelta;
+                if (verticalPrevious > MAXIMUM_VERTICAL_VIEW_ANGLE)
                 {
-                    HaloMemoryWriter.ReadFromMemory(verticalAddress, temp);
-                    float verticalPrevious = BitConverter.ToSingle(temp, 0);
-                    verticalPrevious += verticalDelta;
-                    if (verticalPrevious > MAXIMUM_VERTICAL_VIEW_ANGLE)
-                    {
-                        verticalPrevious = MAXIMUM_VERTICAL_VIEW_ANGLE;
-                    }
-                    else if (verticalPrevious < -MAXIMUM_VERTICAL_VIEW_ANGLE)
-                    {
-                        verticalPrevious = -MAXIMUM_VERTICAL_VIEW_ANGLE;
-                    }
-                    verticalPrevious = (float)(((verticalPrevious + (Math.PI / 2)) % Math.PI) - (Math.PI / 2));
-                    temp = BitConverter.GetBytes(verticalPrevious);
-                    HaloMemoryWriter.WriteToMemory(verticalAddress, temp);
+                    verticalPrevious = MAXIMUM_VERTICAL_VIEW_ANGLE;
                 }
+                else if (verticalPrevious < -MAXIMUM_VERTICAL_VIEW_ANGLE)
+                {
+                    verticalPrevious = -MAXIMUM_VERTICAL_VIEW_ANGLE;
+                }
+                verticalPrevious = (float)(((verticalPrevious + (Math.PI / 2)) % Math.PI) - (Math.PI / 2));
+                temp = BitConverter.GetBytes(verticalPrevious);
+                HaloMemoryWriter.WriteToMemory(verticalAddress, temp);
             }
 
             // Center Cursor on same monitor as process

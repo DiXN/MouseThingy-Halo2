@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace MouseThingy
+﻿namespace MouseThingy
 {
     public class MouseThingy
     {
@@ -21,9 +15,7 @@ namespace MouseThingy
         public static float RummageProgress
         {
             get { return MouseThingy.rummageProgress; }
-            set {
-                MouseThingy.rummageProgress = value;
-            }
+            set { MouseThingy.rummageProgress = value; }
         }
 
         public const uint FOV_MULTIPLIER_OFFSET = 4315524;
