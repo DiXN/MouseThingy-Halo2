@@ -203,6 +203,11 @@
             0,
             0,
             131072});
+            this.numViewOffset.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            -2147418112});
             this.numViewOffset.Name = "numViewOffset";
             this.numViewOffset.Size = new System.Drawing.Size(120, 20);
             this.numViewOffset.TabIndex = 24;
@@ -241,17 +246,17 @@
             this.statusPanel.Name = "statusPanel";
             this.statusPanel.RowCount = 1;
             this.statusPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.statusPanel.Size = new System.Drawing.Size(331, 29);
+            this.statusPanel.Size = new System.Drawing.Size(331, 26);
             this.statusPanel.TabIndex = 28;
             // 
             // statusLabel
             // 
-            this.statusLabel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.statusLabel.Dock = System.Windows.Forms.DockStyle.Top;
             this.statusLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.statusLabel.ForeColor = System.Drawing.Color.White;
             this.statusLabel.Location = new System.Drawing.Point(3, 0);
             this.statusLabel.Name = "statusLabel";
-            this.statusLabel.Size = new System.Drawing.Size(325, 29);
+            this.statusLabel.Size = new System.Drawing.Size(325, 25);
             this.statusLabel.TabIndex = 0;
             this.statusLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
@@ -290,23 +295,22 @@
         }
 
         #endregion
-
-        private System.Windows.Forms.TextBox txtHorizontalSensitivity;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.TextBox txtHorizontalViewAngleAddress;
         private System.Windows.Forms.TextBox txtVerticalViewAngleAddress;
-        private System.Windows.Forms.TextBox txtVerticalSensitivity;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.Label label8;
         private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.NumericUpDown numFoV;
-        public System.Windows.Forms.NumericUpDown numViewOffset;
         private System.Windows.Forms.Timer MemoryWriteTimer;
         private System.Windows.Forms.Button ActivateBtn;
         private System.Windows.Forms.TableLayoutPanel statusPanel;
         private System.Windows.Forms.Label statusLabel;
+        private System.Windows.Forms.NumericUpDown numViewOffset;
+        private System.Windows.Forms.NumericUpDown numFoV;
+        private System.Windows.Forms.TextBox txtHorizontalSensitivity;
+        private System.Windows.Forms.TextBox txtVerticalSensitivity;
     }
 }
 

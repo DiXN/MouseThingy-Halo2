@@ -35,6 +35,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -52,6 +53,8 @@
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
     <Compile Include="HaloMemoryWriter.cs" />
+    <Compile Include="JsonData.cs" />
+    <Compile Include="JsonHelper.cs" />
     <Compile Include="MouseInput.cs" />
     <Compile Include="MouseThingy.cs" />
     <Compile Include="Program.cs" />

@@ -5,6 +5,7 @@ using System.Windows.Forms;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Reflection;
+using System.IO;
 
 namespace MouseThingy
 {
@@ -16,7 +17,9 @@ namespace MouseThingy
         [DllImport("user32.dll")]
         public static extern bool UnregisterHotKey(IntPtr hWnd, int id);
 
-        private static Regex regex = new Regex("^[0-9]+\\.[0-9]+?$");
+        private Regex regex = new Regex("^[0-9]+\\.[0-9]+?$");
+
+        private JsonHelper<JsonData> jsonHelper;
 
         public frmMouseThingy()
         {
@@ -38,6 +41,21 @@ namespace MouseThingy
             numFoV.ValueChanged += numFoV_ValueChanged;
             numViewOffset.ValueChanged += numViewOffset_ValueChanged;
             frmMouseThingy.RegisterHotKey(this.Handle, this.GetType().GetHashCode(), 0, (int)0x21);
+            jsonHelper = new JsonHelper<JsonData>();
+            InitFileds();
+        }
+
+        public void InitFileds()
+        {
+            if (File.Exists("settings.json"))
+            {
+                JsonData data = jsonHelper.Deserialize(jsonHelper.ReadJsonFile());
+
+                txtHorizontalSensitivity.Text = data.HorizontalSensitivty;
+                txtVerticalSensitivity.Text = data.VerticalSensitvity;
+                numFoV.Value = data.Fov;
+                numViewOffset.Value = data.CrosshairOffset;
+            }
         }
 
         protected override void WndProc(ref Message m)
@@ -76,11 +94,17 @@ namespace MouseThingy
         void numViewOffset_ValueChanged(object sender, EventArgs e)
         {
             writeCrosshairOffsetToMemory();
+
+            jsonHelper.OutputJsonToFile(jsonHelper.Serialize
+                (new JsonData(numFoV.Value, numViewOffset.Value, txtHorizontalSensitivity.Text, txtVerticalSensitivity.Text)));
         }
 
         void numFoV_ValueChanged(object sender, EventArgs e)
         {
             writeFOVToMemory();
+
+            jsonHelper.OutputJsonToFile(jsonHelper.Serialize
+                (new JsonData(numFoV.Value, numViewOffset.Value, txtHorizontalSensitivity.Text, txtVerticalSensitivity.Text)));
         }
 
         public float HMul
@@ -152,6 +176,9 @@ namespace MouseThingy
             MouseInput.Start();
             writeFOVToMemory();
             writeCrosshairOffsetToMemory();
+
+            jsonHelper.OutputJsonToFile(jsonHelper.Serialize
+                (new JsonData(numFoV.Value, numViewOffset.Value, txtHorizontalSensitivity.Text, txtVerticalSensitivity.Text)));
         }
     }
 }
