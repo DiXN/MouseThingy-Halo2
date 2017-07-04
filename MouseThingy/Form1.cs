@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Reflection;
 using System.IO;
+using System.Globalization;
 
 namespace MouseThingy
 {
@@ -17,7 +18,7 @@ namespace MouseThingy
         [DllImport("user32.dll")]
         public static extern bool UnregisterHotKey(IntPtr hWnd, int id);
 
-        private Regex regex = new Regex("^[0-9]+\\.[0-9]+?$");
+        private Regex regex = new Regex("^[0-9]+,|.[0-9]+?$");
 
         private JsonHelper<JsonData> jsonHelper;
 
@@ -37,10 +38,15 @@ namespace MouseThingy
             };
 
             InitializeComponent();
-            MouseThingy.MainForm = this;
-            numFoV.ValueChanged += numFoV_ValueChanged;
-            numViewOffset.ValueChanged += numViewOffset_ValueChanged;
-            frmMouseThingy.RegisterHotKey(this.Handle, this.GetType().GetHashCode(), 0, (int)0x21);
+            RegisterHotKey(this.Handle, 0, (int)MouseThingy.KeyModifier.CONTROL, (int)Keys.PageUp);
+            RegisterHotKey(this.Handle, 0, (int)MouseThingy.KeyModifier.CONTROL, (int)Keys.PageDown);
+
+            RegisterHotKey(this.Handle, 1, (int)MouseThingy.KeyModifier.ALT, (int)Keys.PageUp);
+            RegisterHotKey(this.Handle, 1, (int)MouseThingy.KeyModifier.ALT, (int)Keys.PageDown);
+
+            RegisterHotKey(this.Handle, 2, (int)MouseThingy.KeyModifier.SHIFT, (int)Keys.PageUp);
+            RegisterHotKey(this.Handle, 2, (int)MouseThingy.KeyModifier.SHIFT, (int)Keys.PageDown);
+
             jsonHelper = new JsonHelper<JsonData>();
             InitFileds();
         }
@@ -51,8 +57,8 @@ namespace MouseThingy
             {
                 JsonData data = jsonHelper.Deserialize(jsonHelper.ReadJsonFile());
 
-                txtHorizontalSensitivity.Text = data.HorizontalSensitivty;
-                txtVerticalSensitivity.Text = data.VerticalSensitvity;
+                numHorizontal.Value = data.HorizontalSensitivty;
+                numVertical.Value = data.VerticalSensitvity;
                 numFoV.Value = data.Fov;
                 numViewOffset.Value = data.CrosshairOffset;
             }
@@ -62,12 +68,55 @@ namespace MouseThingy
         {
             if (m.Msg == 0x0312)
             {
-                if (Process.GetProcessesByName("halo2").Length > 0)
+                Keys key = (Keys)(((int)m.LParam >> 16) & 0xFFFF);
+                MouseThingy.KeyModifier modifier = (MouseThingy.KeyModifier)((int)m.LParam & 0xFFFF);
+
+                switch (key)
                 {
-                    HaloMemoryWriter.TryConnectToProcess();
-                    MouseInput.Start();
-                    writeFOVToMemory();
-                    writeCrosshairOffsetToMemory();
+                    case Keys.PageUp:
+                        if (modifier == MouseThingy.KeyModifier.CONTROL)
+                        {
+                            if (numFoV.Value < 110)
+                                numFoV.Value += 1;
+                        }
+                        else if (modifier == MouseThingy.KeyModifier.ALT)
+                        {
+                            if (numViewOffset.Value <= (decimal)0.245)
+                                numViewOffset.Value += (decimal)0.005;
+                            else
+                                numViewOffset.Value = (decimal)0.250;
+                        }
+                        else if (modifier == MouseThingy.KeyModifier.SHIFT)
+                        {
+                            if (numHorizontal.Value <= (decimal)9.95)
+                                numHorizontal.Value += (decimal)0.05;
+                            else
+                                numHorizontal.Value = 10;
+                        }
+                        break;
+                    case Keys.PageDown:
+                        if (modifier == MouseThingy.KeyModifier.CONTROL)
+                        {
+                            if (numFoV.Value > 5)
+                                numFoV.Value += -1;
+                        }
+                        else if (modifier == MouseThingy.KeyModifier.ALT)
+                        {
+                            if (numViewOffset.Value >= (decimal)0.005)
+                                numViewOffset.Value -= (decimal)0.005;
+                            else
+                                numViewOffset.Value = 0;
+                        }
+                        else if (modifier == MouseThingy.KeyModifier.SHIFT)
+                        {
+                            if (numHorizontal.Value >= (decimal)0.005)
+                                numHorizontal.Value -= (decimal)0.005;
+                            else
+                                numHorizontal.Value = 0;
+                        }
+                        break;
+                    default:
+                        break;
                 }
             }
 
@@ -91,30 +140,30 @@ namespace MouseThingy
             HaloMemoryWriter.WriteToMemory((uint)HaloMemoryWriter.BaseAddress + MouseThingy.FOV_VEHICLE_MULTIPLIER_OFFSET, BitConverter.GetBytes(targetRadians / defaultRadians));
         }
 
-        void numViewOffset_ValueChanged(object sender, EventArgs e)
+        public void elem_ValueChanged(object sender, EventArgs e)
         {
-            writeCrosshairOffsetToMemory();
+            NumericUpDown elem = (NumericUpDown)sender;
+
+            if (elem.Tag.ToString() == "fov")
+            {
+                writeFOVToMemory();
+            }
+            else if(elem.Tag.ToString() == "offset")
+            {
+                writeCrosshairOffsetToMemory();
+            }
 
             jsonHelper.OutputJsonToFile(jsonHelper.Serialize
-                (new JsonData(numFoV.Value, numViewOffset.Value, txtHorizontalSensitivity.Text, txtVerticalSensitivity.Text)));
-        }
-
-        void numFoV_ValueChanged(object sender, EventArgs e)
-        {
-            writeFOVToMemory();
-
-            jsonHelper.OutputJsonToFile(jsonHelper.Serialize
-                (new JsonData(numFoV.Value, numViewOffset.Value, txtHorizontalSensitivity.Text, txtVerticalSensitivity.Text)));
+                (new JsonData(numFoV.Value, numViewOffset.Value, numHorizontal.Value, numVertical.Value)));
         }
 
         public float HMul
         {
             get
             {
-                if (regex.IsMatch(txtHorizontalSensitivity.Text))
+                if (regex.IsMatch(numHorizontal.Value.ToString()))
                 {
-                    string text = txtHorizontalSensitivity.Text;
-                    return text.Length > 3 ? float.Parse(text) / (float)Math.Pow(10, text.Length - 3) : float.Parse(text);
+                    return (float)numHorizontal.Value;
                 }
                 else
                 {
@@ -131,10 +180,9 @@ namespace MouseThingy
         public float VMul
         {
             get {
-                if (regex.IsMatch(txtHorizontalSensitivity.Text))
+                if (regex.IsMatch(numVertical.Value.ToString()))
                 {
-                    string text = txtVerticalSensitivity.Text;
-                    return text.Length > 3 ? float.Parse(text) / (float)Math.Pow(10, text.Length - 3) : float.Parse(text);
+                    return (float)numVertical.Value;
                 }
                 else
                 {
@@ -152,33 +200,22 @@ namespace MouseThingy
         {
             if (Process.GetProcessesByName("halo2").Length > 0)
             {
-                ActivateBtn.Enabled = true;
                 statusPanel.BackColor = Color.Green;
                 statusLabel.Text = "Halo 2 process detected.";
-                activate();
+
+                HaloMemoryWriter.TryConnectToProcess();
+                MouseInput.Start();
+                writeFOVToMemory();
+                writeCrosshairOffsetToMemory();
+
+                jsonHelper.OutputJsonToFile(jsonHelper.Serialize
+                    (new JsonData(numFoV.Value, numViewOffset.Value, numHorizontal.Value, numVertical.Value)));
             }
             else
             {
                 statusPanel.BackColor = Color.Red;
                 statusLabel.Text = "Halo 2 process not detected.";
-                ActivateBtn.Enabled = false;
             }
-        }
-
-        private void ActivateBtn_Click(object sender, EventArgs e)
-        {
-            activate();
-        }
-
-        private void activate()
-        {
-            HaloMemoryWriter.TryConnectToProcess();
-            MouseInput.Start();
-            writeFOVToMemory();
-            writeCrosshairOffsetToMemory();
-
-            jsonHelper.OutputJsonToFile(jsonHelper.Serialize
-                (new JsonData(numFoV.Value, numViewOffset.Value, txtHorizontalSensitivity.Text, txtVerticalSensitivity.Text)));
         }
     }
 }

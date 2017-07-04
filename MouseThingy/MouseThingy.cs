@@ -1,21 +1,12 @@
-﻿namespace MouseThingy
+﻿using System.Windows.Forms;
+
+namespace MouseThingy
 {
     public class MouseThingy
-    {
-        private static frmMouseThingy mainForm = null;
-
+    {      
         public static frmMouseThingy MainForm
         {
-            get { return mainForm; }
-            set { mainForm = value; }
-        }
-
-        private static float rummageProgress = 0;
-
-        public static float RummageProgress
-        {
-            get { return MouseThingy.rummageProgress; }
-            set { MouseThingy.rummageProgress = value; }
+            get { return (frmMouseThingy)Application.OpenForms[0]; }
         }
 
         public const uint FOV_MULTIPLIER_OFFSET = 4315524;
@@ -24,11 +15,9 @@
         public const uint CROSSHAIR_OFFSET_POINTER = 0x47CD54;
         public const uint CROSSHAIR_OFFSET_POINTER_OFFSET = 0x3dc00;
 
-        private static float sensitivityDivisor = 4000;
-
         public static float SensitivityDivisor
         {
-            get { return MouseThingy.sensitivityDivisor; }
+            get { return 400; }
         }
 
         private static uint mpViewOffsetAddress = 0;
@@ -37,6 +26,14 @@
         {
             get { return MouseThingy.mpViewOffsetAddress; }
             set { MouseThingy.mpViewOffsetAddress = value; }
+        }
+
+        public enum KeyModifier
+        {
+            NONE = 0,
+            ALT = 1,
+            CONTROL = 2,
+            SHIFT = 4
         }
     }
 }

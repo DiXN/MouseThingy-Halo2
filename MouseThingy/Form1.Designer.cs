@@ -29,11 +29,9 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            this.txtHorizontalSensitivity = new System.Windows.Forms.TextBox();
             this.label4 = new System.Windows.Forms.Label();
             this.txtHorizontalViewAngleAddress = new System.Windows.Forms.TextBox();
             this.txtVerticalViewAngleAddress = new System.Windows.Forms.TextBox();
-            this.txtVerticalSensitivity = new System.Windows.Forms.TextBox();
             this.label5 = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
             this.label7 = new System.Windows.Forms.Label();
@@ -42,31 +40,23 @@
             this.numFoV = new System.Windows.Forms.NumericUpDown();
             this.numViewOffset = new System.Windows.Forms.NumericUpDown();
             this.MemoryWriteTimer = new System.Windows.Forms.Timer(this.components);
-            this.ActivateBtn = new System.Windows.Forms.Button();
             this.statusPanel = new System.Windows.Forms.TableLayoutPanel();
             this.statusLabel = new System.Windows.Forms.Label();
+            this.numHorizontal = new System.Windows.Forms.NumericUpDown();
+            this.numVertical = new System.Windows.Forms.NumericUpDown();
             ((System.ComponentModel.ISupportInitialize)(this.numFoV)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numViewOffset)).BeginInit();
             this.statusPanel.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numHorizontal)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numVertical)).BeginInit();
             this.SuspendLayout();
-            // 
-            // txtHorizontalSensitivity
-            // 
-            this.txtHorizontalSensitivity.BackColor = System.Drawing.SystemColors.Control;
-            this.txtHorizontalSensitivity.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.txtHorizontalSensitivity.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.txtHorizontalSensitivity.Location = new System.Drawing.Point(13, 62);
-            this.txtHorizontalSensitivity.Name = "txtHorizontalSensitivity";
-            this.txtHorizontalSensitivity.Size = new System.Drawing.Size(64, 20);
-            this.txtHorizontalSensitivity.TabIndex = 10;
-            this.txtHorizontalSensitivity.Text = "2.2";
             // 
             // label4
             // 
             this.label4.AutoSize = true;
             this.label4.BackColor = System.Drawing.Color.Transparent;
             this.label4.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.label4.Location = new System.Drawing.Point(83, 65);
+            this.label4.Location = new System.Drawing.Point(83, 42);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(104, 13);
             this.label4.TabIndex = 11;
@@ -77,7 +67,7 @@
             this.txtHorizontalViewAngleAddress.BackColor = System.Drawing.SystemColors.Control;
             this.txtHorizontalViewAngleAddress.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.txtHorizontalViewAngleAddress.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.txtHorizontalViewAngleAddress.Location = new System.Drawing.Point(191, 62);
+            this.txtHorizontalViewAngleAddress.Location = new System.Drawing.Point(191, 39);
             this.txtHorizontalViewAngleAddress.Name = "txtHorizontalViewAngleAddress";
             this.txtHorizontalViewAngleAddress.Size = new System.Drawing.Size(70, 20);
             this.txtHorizontalViewAngleAddress.TabIndex = 13;
@@ -88,29 +78,18 @@
             this.txtVerticalViewAngleAddress.BackColor = System.Drawing.SystemColors.Control;
             this.txtVerticalViewAngleAddress.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.txtVerticalViewAngleAddress.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.txtVerticalViewAngleAddress.Location = new System.Drawing.Point(191, 88);
+            this.txtVerticalViewAngleAddress.Location = new System.Drawing.Point(191, 65);
             this.txtVerticalViewAngleAddress.Name = "txtVerticalViewAngleAddress";
             this.txtVerticalViewAngleAddress.Size = new System.Drawing.Size(70, 20);
             this.txtVerticalViewAngleAddress.TabIndex = 13;
             this.txtVerticalViewAngleAddress.Text = "805326036";
-            // 
-            // txtVerticalSensitivity
-            // 
-            this.txtVerticalSensitivity.BackColor = System.Drawing.SystemColors.Control;
-            this.txtVerticalSensitivity.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.txtVerticalSensitivity.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.txtVerticalSensitivity.Location = new System.Drawing.Point(13, 88);
-            this.txtVerticalSensitivity.Name = "txtVerticalSensitivity";
-            this.txtVerticalSensitivity.Size = new System.Drawing.Size(64, 20);
-            this.txtVerticalSensitivity.TabIndex = 10;
-            this.txtVerticalSensitivity.Text = "2.2";
             // 
             // label5
             // 
             this.label5.AutoSize = true;
             this.label5.BackColor = System.Drawing.Color.Transparent;
             this.label5.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.label5.Location = new System.Drawing.Point(83, 91);
+            this.label5.Location = new System.Drawing.Point(83, 68);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(92, 13);
             this.label5.TabIndex = 11;
@@ -121,7 +100,7 @@
             this.label6.AutoSize = true;
             this.label6.BackColor = System.Drawing.Color.Transparent;
             this.label6.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.label6.Location = new System.Drawing.Point(267, 65);
+            this.label6.Location = new System.Drawing.Point(267, 42);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(56, 13);
             this.label6.TabIndex = 11;
@@ -132,7 +111,7 @@
             this.label7.AutoSize = true;
             this.label7.BackColor = System.Drawing.Color.Transparent;
             this.label7.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.label7.Location = new System.Drawing.Point(267, 91);
+            this.label7.Location = new System.Drawing.Point(267, 68);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(55, 13);
             this.label7.TabIndex = 11;
@@ -143,7 +122,7 @@
             this.label8.AutoSize = true;
             this.label8.BackColor = System.Drawing.Color.Transparent;
             this.label8.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.label8.Location = new System.Drawing.Point(10, 122);
+            this.label8.Location = new System.Drawing.Point(10, 99);
             this.label8.Name = "label8";
             this.label8.Size = new System.Drawing.Size(67, 13);
             this.label8.TabIndex = 16;
@@ -154,7 +133,7 @@
             this.label1.AutoSize = true;
             this.label1.BackColor = System.Drawing.Color.Transparent;
             this.label1.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.label1.Location = new System.Drawing.Point(217, 122);
+            this.label1.Location = new System.Drawing.Point(217, 99);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(81, 13);
             this.label1.TabIndex = 18;
@@ -162,11 +141,11 @@
             // 
             // numFoV
             // 
-            this.numFoV.BackColor = System.Drawing.SystemColors.Control;
+            this.numFoV.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
             this.numFoV.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.numFoV.DecimalPlaces = 2;
             this.numFoV.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.numFoV.Location = new System.Drawing.Point(13, 139);
+            this.numFoV.Location = new System.Drawing.Point(13, 116);
             this.numFoV.Maximum = new decimal(new int[] {
             110,
             0,
@@ -180,15 +159,17 @@
             this.numFoV.Name = "numFoV";
             this.numFoV.Size = new System.Drawing.Size(120, 20);
             this.numFoV.TabIndex = 23;
+            this.numFoV.Tag = "fov";
             this.numFoV.Value = new decimal(new int[] {
             90,
             0,
             0,
             0});
+            this.numFoV.ValueChanged += new System.EventHandler(this.elem_ValueChanged);
             // 
             // numViewOffset
             // 
-            this.numViewOffset.BackColor = System.Drawing.SystemColors.Control;
+            this.numViewOffset.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
             this.numViewOffset.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.numViewOffset.DecimalPlaces = 3;
             this.numViewOffset.ForeColor = System.Drawing.SystemColors.ControlText;
@@ -197,42 +178,28 @@
             0,
             0,
             196608});
-            this.numViewOffset.Location = new System.Drawing.Point(202, 139);
+            this.numViewOffset.Location = new System.Drawing.Point(202, 116);
             this.numViewOffset.Maximum = new decimal(new int[] {
             25,
             0,
             0,
             131072});
-            this.numViewOffset.Minimum = new decimal(new int[] {
-            1,
-            0,
-            0,
-            -2147418112});
             this.numViewOffset.Name = "numViewOffset";
             this.numViewOffset.Size = new System.Drawing.Size(120, 20);
             this.numViewOffset.TabIndex = 24;
+            this.numViewOffset.Tag = "offset";
             this.numViewOffset.Value = new decimal(new int[] {
             165,
             0,
             0,
             196608});
+            this.numViewOffset.ValueChanged += new System.EventHandler(this.elem_ValueChanged);
             // 
             // MemoryWriteTimer
             // 
             this.MemoryWriteTimer.Enabled = true;
             this.MemoryWriteTimer.Interval = 1000;
             this.MemoryWriteTimer.Tick += new System.EventHandler(this.MemoryWriteTimer_Tick);
-            // 
-            // ActivateBtn
-            // 
-            this.ActivateBtn.Enabled = false;
-            this.ActivateBtn.Location = new System.Drawing.Point(220, 33);
-            this.ActivateBtn.Name = "ActivateBtn";
-            this.ActivateBtn.Size = new System.Drawing.Size(102, 23);
-            this.ActivateBtn.TabIndex = 27;
-            this.ActivateBtn.Text = "Activate(PGUP)";
-            this.ActivateBtn.UseVisualStyleBackColor = true;
-            this.ActivateBtn.Click += new System.EventHandler(this.ActivateBtn_Click);
             // 
             // statusPanel
             // 
@@ -260,14 +227,65 @@
             this.statusLabel.TabIndex = 0;
             this.statusLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
+            // numHorizontal
+            // 
+            this.numHorizontal.DecimalPlaces = 5;
+            this.numHorizontal.Increment = new decimal(new int[] {
+            5,
+            0,
+            0,
+            131072});
+            this.numHorizontal.Location = new System.Drawing.Point(13, 37);
+            this.numHorizontal.Maximum = new decimal(new int[] {
+            10,
+            0,
+            0,
+            0});
+            this.numHorizontal.Name = "numHorizontal";
+            this.numHorizontal.Size = new System.Drawing.Size(64, 20);
+            this.numHorizontal.TabIndex = 29;
+            this.numHorizontal.Tag = "horizontal";
+            this.numHorizontal.Value = new decimal(new int[] {
+            22,
+            0,
+            0,
+            65536});
+            this.numHorizontal.ValueChanged += new System.EventHandler(this.elem_ValueChanged);
+            // 
+            // numVertical
+            // 
+            this.numVertical.DecimalPlaces = 5;
+            this.numVertical.Increment = new decimal(new int[] {
+            5,
+            0,
+            0,
+            131072});
+            this.numVertical.Location = new System.Drawing.Point(12, 63);
+            this.numVertical.Maximum = new decimal(new int[] {
+            10,
+            0,
+            0,
+            0});
+            this.numVertical.Name = "numVertical";
+            this.numVertical.Size = new System.Drawing.Size(64, 20);
+            this.numVertical.TabIndex = 29;
+            this.numVertical.Tag = "vertical";
+            this.numVertical.Value = new decimal(new int[] {
+            22,
+            0,
+            0,
+            65536});
+            this.numVertical.ValueChanged += new System.EventHandler(this.elem_ValueChanged);
+            // 
             // frmMouseThingy
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(236)))), ((int)(((byte)(240)))), ((int)(((byte)(241)))));
-            this.ClientSize = new System.Drawing.Size(331, 176);
+            this.ClientSize = new System.Drawing.Size(331, 150);
+            this.Controls.Add(this.numVertical);
+            this.Controls.Add(this.numHorizontal);
             this.Controls.Add(this.statusPanel);
-            this.Controls.Add(this.ActivateBtn);
             this.Controls.Add(this.numViewOffset);
             this.Controls.Add(this.numFoV);
             this.Controls.Add(this.label1);
@@ -278,8 +296,6 @@
             this.Controls.Add(this.label5);
             this.Controls.Add(this.label6);
             this.Controls.Add(this.label4);
-            this.Controls.Add(this.txtVerticalSensitivity);
-            this.Controls.Add(this.txtHorizontalSensitivity);
             this.ForeColor = System.Drawing.SystemColors.ControlText;
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
@@ -289,6 +305,8 @@
             ((System.ComponentModel.ISupportInitialize)(this.numFoV)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numViewOffset)).EndInit();
             this.statusPanel.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.numHorizontal)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numVertical)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -304,13 +322,12 @@
         private System.Windows.Forms.Label label8;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Timer MemoryWriteTimer;
-        private System.Windows.Forms.Button ActivateBtn;
         private System.Windows.Forms.TableLayoutPanel statusPanel;
         private System.Windows.Forms.Label statusLabel;
         private System.Windows.Forms.NumericUpDown numViewOffset;
         private System.Windows.Forms.NumericUpDown numFoV;
-        private System.Windows.Forms.TextBox txtHorizontalSensitivity;
-        private System.Windows.Forms.TextBox txtVerticalSensitivity;
+        private System.Windows.Forms.NumericUpDown numHorizontal;
+        private System.Windows.Forms.NumericUpDown numVertical;
     }
 }
 

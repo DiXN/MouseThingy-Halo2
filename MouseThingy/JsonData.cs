@@ -5,12 +5,7 @@ namespace MouseThingy
     [DataContract]
     public class JsonData
     {
-        public JsonData()
-        {
-
-        }
-
-        public JsonData(decimal fov, decimal offset, string hSensitivity, string vSensitivity)
+        public JsonData(decimal fov, decimal offset, decimal hSensitivity, decimal vSensitivity)
         {
             Fov = fov;
             CrosshairOffset = offset;
@@ -19,27 +14,15 @@ namespace MouseThingy
         }
 
         [DataMember]
-        public decimal Fov
-        {
-            get; set;
-        }
+        public decimal Fov { get; set; }
 
         [DataMember]
-        public decimal CrosshairOffset
-        {
-            get; set;
-        }
+        public decimal CrosshairOffset { get; set; }
 
         [DataMember]
-        public string HorizontalSensitivty
-        {
-            get; set;
-        }
+        public decimal HorizontalSensitivty { get; set; }
 
         [DataMember]
-        public string VerticalSensitvity
-        {
-            get; set;
-        }
+        public decimal VerticalSensitvity { get; set;}
     }
 }
