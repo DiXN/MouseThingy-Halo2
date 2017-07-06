@@ -6,7 +6,8 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Reflection;
 using System.IO;
-using System.Globalization;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace MouseThingy
 {
@@ -148,14 +149,60 @@ namespace MouseThingy
             if (elem.Tag.ToString() == "fov")
             {
                 writeFOVToMemory();
+                DrawHandling("FoV: " + elem.Value.ToString());
             }
-            else if(elem.Tag.ToString() == "offset")
+            else if (elem.Tag.ToString() == "offset")
             {
                 writeCrosshairOffsetToMemory();
+                DrawHandling("Crosshair Offset: " + elem.Value.ToString());
+            }
+            else if (elem.Tag.ToString() == "horizontal")
+            {
+                DrawHandling("Horizontal Sensitivity: " + elem.Value.ToString());
             }
 
             jsonHelper.OutputJsonToFile(jsonHelper.Serialize
                 (new JsonData(numFoV.Value, numViewOffset.Value, numHorizontal.Value, numVertical.Value)));
+        }
+
+        private Task drawTimer;
+        private static int drawTimerMaxTick = 3;
+
+        private Action DrawTaskDelegate = () =>
+        {
+            while (drawTimerMaxTick > 0)
+            {
+                Thread.Sleep(1000);
+                drawTimerMaxTick -= 1;
+            }
+
+            Overlay.DestroyAllVisual();
+        };
+
+        private void DrawHandling(string drawString)
+        {
+            if (Process.GetProcessesByName("halo2").Length > 0)
+            {
+                Overlay.SetParam("process", "halo2.exe");
+                Overlay.DestroyAllVisual();
+
+                drawTimerMaxTick = 3;
+                if ((Overlay.TextCreate("Arial", 16, false, false, 32, 32, 0x50FF00FF, drawString, true, true)) != -1)
+                {
+                    if (drawTimer == null)
+                    {
+
+                        drawTimer = Task.Factory.StartNew(DrawTaskDelegate);
+                    }
+                    else
+                    {
+                        if (drawTimer.Status != TaskStatus.Running)
+                        {
+                            drawTimer = Task.Factory.StartNew(DrawTaskDelegate);
+                        }
+                    }
+                }
+            }
         }
 
         public float HMul
@@ -214,6 +261,12 @@ namespace MouseThingy
 
                     jsonHelper.OutputJsonToFile(jsonHelper.Serialize
                         (new JsonData(numFoV.Value, numViewOffset.Value, numHorizontal.Value, numVertical.Value)));
+
+                    Task.Factory.StartNew(() =>
+                    {
+                        Thread.Sleep(3000);
+                        DrawHandling("MouseThingy: Successfully initialized");
+                    });
                 }
             }
             else
