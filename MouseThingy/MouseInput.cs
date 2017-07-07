@@ -70,12 +70,10 @@ namespace MouseThingy
             float currentFoV = BitConverter.ToSingle(currentFovBytes, 0);
             
             // Update halo view angle here
-            float horizontalDelta = mouseDelta.X * MouseThingy.MainForm.HMul * currentFoV / MouseThingy.SensitivityDivisor;
-            float verticalDelta = mouseDelta.Y * -MouseThingy.MainForm.VMul * currentFoV / MouseThingy.SensitivityDivisor;
-
             uint horizontalAddress;
             if (MouseThingy.MainForm.GetHAddr(out horizontalAddress))
             {
+                float horizontalDelta = mouseDelta.X * MouseThingy.MainForm.HMul * currentFoV / MouseThingy.SensitivityDivisor;
                 byte[] temp = new byte[4];
                 HaloMemoryWriter.ReadFromMemory(horizontalAddress, temp);
                 float horizontalPrevious = BitConverter.ToSingle(temp, 0);
@@ -88,6 +86,7 @@ namespace MouseThingy
             uint verticalAddress;
             if (MouseThingy.MainForm.GetVAddr(out verticalAddress))
             {
+                float verticalDelta = mouseDelta.Y * -MouseThingy.MainForm.VMul * currentFoV / MouseThingy.SensitivityDivisor;
                 byte[] temp = new byte[4];
                 HaloMemoryWriter.ReadFromMemory(verticalAddress, temp);
                 float verticalPrevious = BitConverter.ToSingle(temp, 0);

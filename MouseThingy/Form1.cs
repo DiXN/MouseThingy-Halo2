@@ -21,6 +21,7 @@ namespace MouseThingy
         private Regex regex = new Regex("^[0-9]+,|.[0-9]+?$");
 
         private JsonHelper<JsonData> jsonHelper;
+        private bool isActive = false;
 
         public frmMouseThingy()
         {
@@ -89,7 +90,7 @@ namespace MouseThingy
                         else if (modifier == MouseThingy.KeyModifier.SHIFT)
                         {
                             if (numHorizontal.Value <= (decimal)9.95)
-                                numHorizontal.Value += (decimal)0.05;
+                                numHorizontal.Value += (decimal)0.005;
                             else
                                 numHorizontal.Value = 10;
                         }
@@ -203,18 +204,23 @@ namespace MouseThingy
                 statusPanel.BackColor = Color.Green;
                 statusLabel.Text = "Halo 2 process detected.";
 
-                HaloMemoryWriter.TryConnectToProcess();
-                MouseInput.Start();
-                writeFOVToMemory();
-                writeCrosshairOffsetToMemory();
+                if (!isActive)
+                {
+                    HaloMemoryWriter.TryConnectToProcess();
+                    MouseInput.Start();
+                    writeFOVToMemory();
+                    writeCrosshairOffsetToMemory();
+                    isActive = true;
 
-                jsonHelper.OutputJsonToFile(jsonHelper.Serialize
-                    (new JsonData(numFoV.Value, numViewOffset.Value, numHorizontal.Value, numVertical.Value)));
+                    jsonHelper.OutputJsonToFile(jsonHelper.Serialize
+                        (new JsonData(numFoV.Value, numViewOffset.Value, numHorizontal.Value, numVertical.Value)));
+                }
             }
             else
             {
                 statusPanel.BackColor = Color.Red;
                 statusLabel.Text = "Halo 2 process not detected.";
+                isActive = false;
             }
         }
     }

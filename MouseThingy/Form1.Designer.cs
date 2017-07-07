@@ -234,7 +234,7 @@
             5,
             0,
             0,
-            131072});
+            196608});
             this.numHorizontal.Location = new System.Drawing.Point(13, 37);
             this.numHorizontal.Maximum = new decimal(new int[] {
             10,
@@ -259,7 +259,7 @@
             5,
             0,
             0,
-            131072});
+            196608});
             this.numVertical.Location = new System.Drawing.Point(12, 63);
             this.numVertical.Maximum = new decimal(new int[] {
             10,
